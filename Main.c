@@ -35,9 +35,15 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &p);
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
     MPI_Get_processor_name(hostname, &hostsize);
-    printf("Processo %d/%d [%s]\n",id,p,hostname);
+    //Pai = (n-1)/2 
+    //Filho = n*2+1 e n*2+2
+    if(id == 0)
+    {
+        printf("Pai %d/%d [%s]\n",id,p,hostname);
+    }
     if (id != 0)
     {
+        printf("Filho %d/%d [%s]\n",id,p,hostname);
         MPI_Finalize();
         exit(0);
     }
