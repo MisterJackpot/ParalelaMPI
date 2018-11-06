@@ -70,6 +70,14 @@ int main(int argc, char *argv[])
     else
     {
         //TODO: Logica para verificar se processo é folha ou tem filhos
+        //Tem Filhos
+        if(((id * 2) + 1) <= p || ((id * 2) + 2) <= p ){
+
+        }
+        //Não tem Filhos
+        else{
+            
+        }
         
         //TODO: Logica para os filhos receberem array e passarem para baixo
 
