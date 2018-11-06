@@ -31,29 +31,57 @@ int main(int argc, char *argv[])
     int array[SIZE], p, id, i;
     double elapsed_time;
 
-    MPI_Init(&argc, &argv);
-    MPI_Comm_size(MPI_COMM_WORLD, &p);
-    MPI_Comm_rank(MPI_COMM_WORLD, &id);
-    MPI_Get_processor_name(hostname, &hostsize);
-    //Pai = (n-1)/2 
-    //Filho = n*2+1 e n*2+2
-    if(id == 0)
-    {
-        printf("Pai %d/%d [%s]\n",id,p,hostname);
-    }
-    if (id != 0)
-    {
-        printf("Filho %d/%d [%s]\n",id,p,hostname);
-        MPI_Finalize();
-        exit(0);
-    }
-
     // INICIALIZA O ARRAY A SER ORDENADO (COM O PIOR CASO)
     for (i = 0; i < SIZE; i++)
         array[i] = SIZE - i;
 
-    elapsed_time = -MPI_Wtime();
     // ORDENA
+    MPI_Init(&argc, &argv);
+    MPI_Comm_size(MPI_COMM_WORLD, &p);
+    MPI_Comm_rank(MPI_COMM_WORLD, &id);
+    MPI_Get_processor_name(hostname, &hostsize);
+    elapsed_time = -MPI_Wtime();
+    //Pai = (n-1)/2
+    //Filho = n*2+1 e n*2+2
+    if (id == 0)
+    {
+        int *firstHalf = malloc((SIZE / 2) * sizeof(int));
+        if (!firstHalf)
+        {
+            /* handle error */
+        }
+
+        int *secondHalf = malloc((SIZE / 2) * sizeof(int));
+        if (!secondHalf)
+        {
+            /* handle error */
+        }
+
+        memcpy(firstHalf, array, (SIZE / 2) * sizeof(int));
+        memcpy(secondHalf, array + (SIZE / 2), (SIZE / 2) * sizeof(int));
+
+        MPI_Send(&firstHalf, (SIZE / 2), MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
+        MPI_Send(&secondtHalf, (SIZE / 2), MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
+
+        //TODO: Logica para receber os arrays ordenados dos filhos!
+
+        //TODO: Ordenar vetores recebidos em um unico
+    }
+    else
+    {
+        //TODO: Logica para verificar se processo é folha ou tem filhos
+        
+        //TODO: Logica para os filhos receberem array e passarem para baixo
+
+        //TODO: Logica para receber os arrays ordenados dos filhos!
+
+        //TODO: Ordenar vetores recebidos em um unico 
+
+        //TODO: Enviar vetor ordenado para o pai
+        MPI_Finalize();
+        exit(0);
+    }
+
     BubbleSort(SIZE, &array[0]);
     elapsed_time += MPI_Wtime();
 
