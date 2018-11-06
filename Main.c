@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
 {
     int hostsize;
     char hostname[MPI_MAX_PROCESSOR_NAME];
-    int array[SIZE], p, id, i;
+    int array[SIZE], p, id, i, selfSize;
     double elapsed_time;
 
     // INICIALIZA O ARRAY A SER ORDENADO (COM O PIOR CASO)
@@ -48,20 +48,22 @@ int main(int argc, char *argv[])
         int *firstHalf = malloc((SIZE / 2) * sizeof(int));
         if (!firstHalf)
         {
-            /* handle error */
+            return 1
         }
 
         int *secondHalf = malloc((SIZE / 2) * sizeof(int));
         if (!secondHalf)
         {
-            /* handle error */
+            return 1
         }
 
         memcpy(firstHalf, array, (SIZE / 2) * sizeof(int));
         memcpy(secondHalf, array + (SIZE / 2), (SIZE / 2) * sizeof(int));
 
-        MPI_Send(&firstHalf, (SIZE / 2), MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
-        MPI_Send(&secondtHalf, (SIZE / 2), MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
+        MPI_Send((SIZE / 2), 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
+        MPI_Send(&firstHalf, (SIZE / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
+        MPI_Send((SIZE / 2), 1, MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
+        MPI_Send(&secondtHalf, (SIZE / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
 
         //TODO: Logica para receber os arrays ordenados dos filhos!
 
@@ -69,6 +71,11 @@ int main(int argc, char *argv[])
     }
     else
     {
+        //TODO: Logica para receber o array 
+        MPI_Recive(&selfSize,1,MPI_INT,(id-1)/2,1, MPI_COMM_WORLD, &status);
+        int auxArray[selfSize];
+        MPI_Recive(auxArray,selfSize,MPI_INT,(id-1)/2,2, MPI_COMM_WORLD, &status);
+        printf("%d", auxArray);
         //TODO: Logica para verificar se processo é folha ou tem filhos
         //Tem Filhos
         if(((id * 2) + 1) <= p || ((id * 2) + 2) <= p ){
@@ -76,10 +83,10 @@ int main(int argc, char *argv[])
         }
         //Não tem Filhos
         else{
-            
+
         }
         
-        //TODO: Logica para os filhos receberem array e passarem para baixo
+        //TODO: Logica para os filhos passarem para baixo
 
         //TODO: Logica para receber os arrays ordenados dos filhos!
 
