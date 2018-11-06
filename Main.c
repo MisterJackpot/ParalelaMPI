@@ -61,43 +61,77 @@ int main(int argc, char *argv[])
         memcpy(secondHalf, array + (SIZE / 2), (SIZE / 2) * sizeof(int));
 
         MPI_Send((SIZE / 2), 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
-        MPI_Send(&firstHalf, (SIZE / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
+        MPI_Send(firstHalf, (SIZE / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
         MPI_Send((SIZE / 2), 1, MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
-        MPI_Send(&secondtHalf, (SIZE / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
+        MPI_Send(secondtHalf, (SIZE / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
 
         //TODO: Logica para receber os arrays ordenados dos filhos!
+        MPI_Recv(&firstHalf, (SIZE / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD, &status);
+        MPI_Recv(&secondHalf, (SIZE / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD, &status);
 
         //TODO: Ordenar vetores recebidos em um unico
+        memcpy(array, firstHalf, sizeof(firstHalf));
+        memcpy(&array[sizeof(firstHalf) / sizeof(int)], secondHalf, sizeof(secondHalf));
+
+        BubbleSort(selfSize, &array[0]);
     }
     else
     {
-        //TODO: Logica para receber o array 
-        MPI_Recive(&selfSize,1,MPI_INT,(id-1)/2,1, MPI_COMM_WORLD, &status);
+        //TODO: Logica para receber o array
+        MPI_Recv(&selfSize, 1, MPI_INT, (id - 1) / 2, 1, MPI_COMM_WORLD, &status);
         int auxArray[selfSize];
-        MPI_Recive(auxArray,selfSize,MPI_INT,(id-1)/2,2, MPI_COMM_WORLD, &status);
+        MPI_Recv(auxArray, selfSize, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD, &status);
         printf("%d", auxArray);
         //TODO: Logica para verificar se processo é folha ou tem filhos
         //Tem Filhos
-        if(((id * 2) + 1) <= p || ((id * 2) + 2) <= p ){
+        if (((id * 2) + 1) <= p || ((id * 2) + 2) <= p)
+        {
+            //TODO: Logica para os filhos passarem para baixo
+            int *firstHalf = malloc((selfSize / 2) * sizeof(int));
+            if (!firstHalf)
+            {
+                return 1
+            }
 
+            int *secondHalf = malloc((selfSize / 2) * sizeof(int));
+            if (!secondHalf)
+            {
+                return 1
+            }
+
+            memcpy(firstHalf, array, (selfSize / 2) * sizeof(int));
+            memcpy(secondHalf, array + (selfSize / 2), (selfSize / 2) * sizeof(int));
+
+            MPI_Send((selfSize / 2), 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
+            MPI_Send(firstHalf, (selfSize / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
+            MPI_Send((selfSize / 2), 1, MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
+            MPI_Send(secondtHalf, (selfSize / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
+
+            //TODO: Logica para receber os arrays ordenados dos filhos!
+
+            MPI_Recv(&firstHalf, (selfSize / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD, &status);
+            MPI_Recv(&secondHalf, (selfSize / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD, &status);
+
+            //TODO: Ordenar vetores recebidos em um unico
+            memcpy(auxArray, firstHalf, sizeof(firstHalf));
+            memcpy(&auxArray[sizeof(firstHalf) / sizeof(int)], secondHalf, sizeof(secondHalf));
+
+            BubbleSort(selfSize, &auxArray[0]);
+
+            MPI_Send(auxArray, selfSize, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD);
         }
         //Não tem Filhos
-        else{
-
+        else
+        {
+            BubbleSort(selfSize, &auxArray[0]);
+            MPI_Send(auxArray, selfSize, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD);
         }
-        
-        //TODO: Logica para os filhos passarem para baixo
-
-        //TODO: Logica para receber os arrays ordenados dos filhos!
-
-        //TODO: Ordenar vetores recebidos em um unico 
 
         //TODO: Enviar vetor ordenado para o pai
         MPI_Finalize();
         exit(0);
     }
-
-    BubbleSort(SIZE, &array[0]);
+    
     elapsed_time += MPI_Wtime();
 
     // VERIFICA SE A ORDENAÇÃO FUNCIONOU
