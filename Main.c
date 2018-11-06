@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
         MPI_Send((SIZE / 2), 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
         MPI_Send(firstHalf, (SIZE / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
         MPI_Send((SIZE / 2), 1, MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
-        MPI_Send(secondtHalf, (SIZE / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
+        MPI_Send(secondHalf, (SIZE / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
 
         //TODO: Logica para receber os arrays ordenados dos filhos!
         MPI_Recv(&firstHalf, (SIZE / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD, &status);
@@ -73,7 +73,10 @@ int main(int argc, char *argv[])
         memcpy(array, firstHalf, sizeof(firstHalf));
         memcpy(&array[sizeof(firstHalf) / sizeof(int)], secondHalf, sizeof(secondHalf));
 
-        BubbleSort(selfSize, &array[0]);
+        free(firstHalf);
+        free(secondHalf)
+
+            BubbleSort(selfSize, &array[0]);
     }
     else
     {
@@ -105,7 +108,7 @@ int main(int argc, char *argv[])
             MPI_Send((selfSize / 2), 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
             MPI_Send(firstHalf, (selfSize / 2), MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
             MPI_Send((selfSize / 2), 1, MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
-            MPI_Send(secondtHalf, (selfSize / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
+            MPI_Send(secondHalf, (selfSize / 2), MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
 
             //TODO: Logica para receber os arrays ordenados dos filhos!
 
@@ -115,6 +118,8 @@ int main(int argc, char *argv[])
             //TODO: Ordenar vetores recebidos em um unico
             memcpy(auxArray, firstHalf, sizeof(firstHalf));
             memcpy(&auxArray[sizeof(firstHalf) / sizeof(int)], secondHalf, sizeof(secondHalf));
+            free(firstHalf);
+            free(secondHalf);
 
             BubbleSort(selfSize, &auxArray[0]);
 
@@ -127,11 +132,12 @@ int main(int argc, char *argv[])
             MPI_Send(auxArray, selfSize, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD);
         }
 
+        free(auxArray)
         //TODO: Enviar vetor ordenado para o pai
         MPI_Finalize();
         exit(0);
     }
-    
+
     elapsed_time += MPI_Wtime();
 
     // VERIFICA SE A ORDENAÇÃO FUNCIONOU
