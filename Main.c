@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
         MPI_Recv(&selfSize, 1, MPI_INT, (id - 1) / 2, 1, MPI_COMM_WORLD, &status);
         int auxArray[selfSize];
         MPI_Recv(auxArray, selfSize, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD, &status);
-        printf("\n%d", auxArray);
+        printf("\n%s\n%d",hostname, auxArray);
         //TODO: Logica para verificar se processo é folha ou tem filhos
         //Tem Filhos
         if (((id * 2) + 1) <= p || ((id * 2) + 2) <= p)
