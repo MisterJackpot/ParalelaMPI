@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
         int firstHalf[halfSize];
         int secondHalf[halfSize];
 
-        memcpy(firstHalf, array, 3 * sizeof(int));
-        memcpy(secondHalf, array + 3, 3 * sizeof(int));
+        memcpy(firstHalf, array, halfSize * sizeof(int));
+        memcpy(secondHalf, array + 3, halfSize * sizeof(int));
 
         MPI_Send(&halfSize, 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
         MPI_Send(&firstHalf, halfSize, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
@@ -64,10 +64,17 @@ int main(int argc, char *argv[])
         MPI_Send(&secondHalf, halfSize, MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
 
         //TODO: Logica para receber os arrays ordenados dos filhos!
-        MPI_Recv(&aux1, 1, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD, &status);
-        MPI_Recv(&aux2, 1, MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD, &status);
+        MPI_Recv(&firstHalf, halfSize, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD, &status);
+        MPI_Recv(&secondHalf, halfSize, MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD, &status);
 
-        printf("\nPAI : %d , %s , %d \n", id, hostname, aux1 + aux2);
+        int aux[selfSize];
+        memcpy(aux, firstHalf, halfSize * sizeof(int));
+        memcpy(&aux[halfSize], secondHalf, halfSize * sizeof(int));
+
+        BubbleSort(selfSize, &aux[0]);
+        memcpy(array, aux, selfSize * sizeof(int));
+
+        printf("\nPAI : %d , %s , %d \n", id, hostname, selfSize);
     }
     else
     {
@@ -89,8 +96,8 @@ int main(int argc, char *argv[])
             int firstHalf[halfSize];
             int secondHalf[halfSize];
 
-            memcpy(firstHalf, half, 3 * sizeof(int));
-            memcpy(secondHalf, half + 3, 3 * sizeof(int));
+            memcpy(firstHalf, half, halfSize * sizeof(int));
+            memcpy(secondHalf, half + 3, halfSize * sizeof(int));
 
             MPI_Send(&halfSize, 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
             MPI_Send(&firstHalf, halfSize, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
@@ -99,22 +106,28 @@ int main(int argc, char *argv[])
 
             //TODO: Logica para receber os arrays ordenados dos filhos!
 
-            MPI_Recv(&aux1, 1, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD, &status);
-            MPI_Recv(&aux2, 1, MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD, &status);
+            MPI_Recv(&firstHalf, halfSize, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD, &status);
+            MPI_Recv(&secondHalf, halfSize, MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD, &status);
 
-            selfSize = aux1 + aux2;
-            MPI_Send(&selfSize, 1, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD);
+            int aux[selfSize];
+            memcpy(aux, firstHalf, halfSize * sizeof(int));
+            memcpy(&aux[halfSize], secondHalf, halfSize * sizeof(int));
+
+            BubbleSort(selfSize, &aux[0]);
+
+            MPI_Send(&aux, selfSize, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD);
         }
         //Não tem Filhos
         else
         {
-            MPI_Send(&selfSize, 1, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD);
+            BubbleSort(selfSize, &half[0]);
+            MPI_Send(&half, selfSize, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD);
         }
 
-        //TODO: Enviar vetor ordenado para o pai
+        MPI_Finalize();
     }
 
-    MPI_Finalize();
+    
 
     elapsed_time += MPI_Wtime();
 
