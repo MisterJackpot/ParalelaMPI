@@ -50,31 +50,52 @@ int main(int argc, char *argv[])
     if (id == 0)
     {
         selfSize = SIZE;
-        halfSize = selfSize/2;
+        halfSize = selfSize / 2;
+
+        int firstHalf[halfSize];
+        int secondHalf[halfSize];
+
+        memcpy(firstHalf, array, 3 * sizeof(int));
+        memcpy(secondHalf, array + 3, 3 * sizeof(int));
+
         MPI_Send(&halfSize, 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
+        MPI_Send(&firstHalf, halfSize, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
         MPI_Send(&halfSize, 1, MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
+        MPI_Send(&secondHalf, halfSize, MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
 
         //TODO: Logica para receber os arrays ordenados dos filhos!
         MPI_Recv(&aux1, 1, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD, &status);
         MPI_Recv(&aux2, 1, MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD, &status);
 
-        printf("\nPAI : %d , %s , %d \n",id,hostname, aux1+aux2);
-
+        printf("\nPAI : %d , %s , %d \n", id, hostname, aux1 + aux2);
     }
     else
     {
         //TODO: Logica para receber o array
         MPI_Recv(&selfSize, 1, MPI_INT, (id - 1) / 2, 1, MPI_COMM_WORLD, &status);
-        printf("\nFILHO : %d , %s , %d \n",id,hostname, selfSize);
-        halfSize = selfSize/2;
+        halfSize = selfSize / 2;
+
+        int half[halfSize];
+
+        MPI_Recv(&half, selfSize, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD, &status);
+
+        printf("\nFILHO : %d , %s , %d \n", id, hostname, selfSize);
 
         //TODO: Logica para verificar se processo é folha ou tem filhos
         //Tem Filhos
         if (((id * 2) + 1) <= p && ((id * 2) + 2) <= p)
         {
 
+            int firstHalf[halfSize];
+            int secondHalf[halfSize];
+
+            memcpy(firstHalf, half, 3 * sizeof(int));
+            memcpy(secondHalf, half + 3, 3 * sizeof(int));
+
             MPI_Send(&halfSize, 1, MPI_INT, (id * 2) + 1, 1, MPI_COMM_WORLD);
+            MPI_Send(&firstHalf, halfSize, MPI_INT, (id * 2) + 1, 2, MPI_COMM_WORLD);
             MPI_Send(&halfSize, 1, MPI_INT, (id * 2) + 2, 1, MPI_COMM_WORLD);
+            MPI_Send(&secondHalf, halfSize, MPI_INT, (id * 2) + 2, 2, MPI_COMM_WORLD);
 
             //TODO: Logica para receber os arrays ordenados dos filhos!
 
@@ -86,7 +107,7 @@ int main(int argc, char *argv[])
         }
         //Não tem Filhos
         else
-        {   
+        {
             MPI_Send(&selfSize, 1, MPI_INT, (id - 1) / 2, 2, MPI_COMM_WORLD);
         }
 
